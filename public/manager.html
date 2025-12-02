@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Manager Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dash-body">
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-dot"></span>
+      <span>LeaveHub</span>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-title">Manager</div>
+
+      <a class="sidebar-link active">
+        <span class="sidebar-link-icon">📋</span>
+        <span>Leave Requests</span>
+      </a>
+
+      <a class="sidebar-link">
+        <span class="sidebar-link-icon">👥</span>
+        <span>Employees (view)</span>
+      </a>
+
+      <a class="sidebar-link">
+        <span class="sidebar-link-icon">📊</span>
+        <span>Summary</span>
+      </a>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">M</div>
+      <div class="sidebar-user-meta">
+        <span>Manager User</span>
+        <span>manager</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel">
+
+    <header class="topbar">
+      <div class="topbar-title">Manager Dashboard</div>
+      <button id="logout" class="btn-ghost">Logout</button>
+    </header>
+
+    <main class="page-content">
+      <div class="page-inner">
+
+        <!-- Pending Requests -->
+        <section class="card table-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <div class="card-icon">🕒</div>
+              <div>
+                <div class="card-title">Pending Requests</div>
+                <div class="card-subtitle">Requests waiting for your approval</div>
+              </div>
+            </div>
+          </div>
+
+          <table class="styled-table" id="pendingTable">
+            <thead>
+            <tr>
+              <th>User</th>
+              <th>Type</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Days</th>
+              <th>Reason</th>
+              <th>Action</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+        <!-- All Requests -->
+        <section class="card table-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <div class="card-icon">📊</div>
+              <div>
+                <div class="card-title">All Requests</div>
+                <div class="card-subtitle">Complete leave history of employees</div>
+              </div>
+            </div>
+          </div>
+
+          <table class="styled-table" id="allTable">
+            <thead>
+            <tr>
+              <th>User</th>
+              <th>Type</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th>Manager Comment</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+
+<script>
+  (async function () {
+    const user = JSON.parse(localStorage.getItem('lm_user') || '{}');
+    if (!user || user.role !== 'manager') {
+      alert("Please login as Manager");
+      location.href = "/";
+      return;
+    }
+
+    document.getElementById("logout").onclick = () => {
+      localStorage.removeItem("lm_user");
+      location.href = "/";
+    };
+
+    let users = [];
+
+    async function loadUsers() {
+      const res = await fetch("/data.json");
+      const d = await res.json();
+      users = d.users;
+    }
+
+    function getUserName(uid) {
+      const u = users.find(x => x.id === uid);
+      return u ? u.name : uid;
+    }
+
+    async function loadPending() {
+      const res = await fetch("/api/leaves/pending");
+      const list = await res.json();
+      const tb = document.querySelector("#pendingTable tbody");
+      tb.innerHTML = "";
+
+      list.forEach(l => {
+        tb.innerHTML += `
+          <tr>
+            <td>${getUserName(l.userId)}</td>
+            <td>${l.leaveType}</td>
+            <td>${l.startDate}</td>
+            <td>${l.endDate}</td>
+            <td>${l.totalDays}</td>
+            <td>${l.reason}</td>
+            <td>
+              <button class="approveBtn" onclick="approve(${l.id})">Approve</button>
+              <button class="rejectBtn" onclick="rejectLeave(${l.id})">Reject</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function loadAll() {
+      const res = await fetch("/api/leaves/all");
+      const list = await res.json();
+      const tb = document.querySelector("#allTable tbody");
+      tb.innerHTML = "";
+
+      list.forEach(l => {
+        tb.innerHTML += `
+          <tr>
+            <td>${getUserName(l.userId)}</td>
+            <td>${l.leaveType}</td>
+            <td>${l.startDate}</td>
+            <td>${l.endDate}</td>
+            <td>${l.totalDays}</td>
+            <td><span class="${l.status}">${l.status}</span></td>
+            <td>${l.managerComment || ""}</td>
+          </tr>
+        `;
+      });
+    }
+
+    window.approve = async (id) => {
+      const comment = prompt("Manager Comment:");
+      await fetch(`/api/leaves/${id}/approve`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({managerComment: comment})
+      });
+      loadPending();
+      loadAll();
+    };
+
+    window.rejectLeave = async (id) => {
+      const comment = prompt("Reason for rejection:");
+      await fetch(`/api/leaves/${id}/reject`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({managerComment: comment})
+      });
+      loadPending();
+      loadAll();
+    };
+
+    await loadUsers();
+    await loadPending();
+    await loadAll();
+  })();
+</script>
+
+</body>
+</html>

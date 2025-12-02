@@ -1,0 +1,141 @@
+{
+  "users": [
+    {
+      "id": "u-manager",
+      "username": "manager",
+      "password": "1234",
+      "role": "manager",
+      "name": "Manager User"
+    },
+    {
+      "id": "u-emp",
+      "username": "emp",
+      "password": "1234",
+      "role": "employee",
+      "name": "Employee User",
+      "email": "emp@company.com"
+    }
+  ],
+  "leaves": [
+    {
+      "id": 1,
+      "userId": "u-emp",
+      "leaveType": "casual",
+      "startDate": "2025-12-05",
+      "endDate": "2025-12-06",
+      "totalDays": 2,
+      "reason": "family",
+      "status": "approved",
+      "managerComment": "ok",
+      "createdAt": "2025-11-30T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "userId": "u-emp",
+      "leaveType": "sick",
+      "startDate": "2025-12-02",
+      "endDate": "2025-12-04",
+      "totalDays": 3,
+      "reason": "high fever",
+      "status": "approved",
+      "managerComment": "take care",
+      "createdAt": "2025-11-30T15:10:47.113Z"
+    },
+    {
+      "id": 3,
+      "userId": "u-emp",
+      "leaveType": "casual",
+      "startDate": "2025-12-10",
+      "endDate": "2025-12-13",
+      "totalDays": 4,
+      "reason": "festival",
+      "status": "approved",
+      "managerComment": "enjoy!!!",
+      "createdAt": "2025-11-30T18:34:37.726Z"
+    },
+    {
+      "id": 4,
+      "userId": "u-emp",
+      "leaveType": "vacation",
+      "startDate": "2025-12-22",
+      "endDate": "2025-12-28",
+      "totalDays": 7,
+      "reason": "I'm going to paris for an family vacation.",
+      "status": "approved",
+      "managerComment": "enjoy wellll",
+      "createdAt": "2025-11-30T18:49:45.240Z"
+    },
+    {
+      "id": 5,
+      "userId": "u-emp",
+      "leaveType": "vacation",
+      "startDate": "2025-12-22",
+      "endDate": "2025-12-28",
+      "totalDays": 7,
+      "reason": "I'm going to paris for an family vacation.",
+      "status": "rejected",
+      "managerComment": "too much vacation reasons",
+      "createdAt": "2025-11-30T18:49:49.094Z"
+    },
+    {
+      "id": 6,
+      "userId": "u-emp",
+      "leaveType": "vacation",
+      "startDate": "2025-12-22",
+      "endDate": "2025-12-28",
+      "totalDays": 7,
+      "reason": "I'm going to paris for an family vacation.",
+      "status": "rejected",
+      "managerComment": "applied twice",
+      "createdAt": "2025-11-30T18:49:55.767Z"
+    },
+    {
+      "id": 7,
+      "userId": "u-emp",
+      "leaveType": "casual",
+      "startDate": "2025-12-05",
+      "endDate": "2025-12-06",
+      "totalDays": 2,
+      "reason": "festival",
+      "status": "approved",
+      "managerComment": "last holiday enjoyy!!!",
+      "createdAt": "2025-12-01T06:05:30.051Z"
+    },
+    {
+      "id": 8,
+      "userId": "u-emp",
+      "leaveType": "sick",
+      "startDate": "2025-12-03",
+      "endDate": "2025-12-05",
+      "totalDays": 3,
+      "reason": "high fever, cold and cough!!",
+      "status": "approved",
+      "managerComment": "take a tour to hospital",
+      "createdAt": "2025-12-01T06:27:35.633Z"
+    },
+    {
+      "id": 9,
+      "userId": "u-emp",
+      "leaveType": "casual",
+      "startDate": "2025-12-25",
+      "endDate": "2025-12-26",
+      "totalDays": 2,
+      "reason": "exploring the state",
+      "status": "approved",
+      "managerComment": "its last",
+      "createdAt": "2025-12-01T10:48:15.700Z"
+    },
+    {
+      "id": 10,
+      "userId": "u-emp",
+      "leaveType": "sick",
+      "startDate": "2025-12-11",
+      "endDate": "2025-12-12",
+      "totalDays": 2,
+      "reason": "cold and fever",
+      "status": "pending",
+      "managerComment": "",
+      "createdAt": "2025-12-01T13:23:59.165Z"
+    }
+  ]
+}

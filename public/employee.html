@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Employee Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="dash-body">
+
+<div class="app-shell">
+  <!-- SIDEBAR (LeaveHub style) -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-dot"></span>
+      <span>LeaveHub</span>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-title">Employee</div>
+      <a class="sidebar-link active">
+        <span class="sidebar-link-icon">🏠</span>
+        <span>My Leave Summary</span>
+      </a>
+      <a class="sidebar-link">
+        <span class="sidebar-link-icon">📝</span>
+        <span>Apply Leave</span>
+      </a>
+      <a class="sidebar-link">
+        <span class="sidebar-link-icon">📄</span>
+        <span>My Requests</span>
+      </a>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">E</div>
+      <div class="sidebar-user-meta">
+        <span>Employee User</span>
+        <span>employee</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel">
+    <header class="topbar">
+      <div class="topbar-title">Employee Dashboard</div>
+      <button id="logout" class="btn-ghost">Logout</button>
+    </header>
+
+    <main class="page-content">
+      <div class="page-inner">
+
+        <!-- TOP ROW: APPLY + BALANCE -->
+        <div class="grid-2">
+
+          <!-- Apply Leave Card -->
+          <section class="card">
+            <div class="card-header-row">
+              <div class="card-title-group">
+                <div class="card-icon">📝</div>
+                <div>
+                  <div class="card-title">Apply Leave</div>
+                  <div class="card-subtitle">Create a new leave request</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="leaveType">Leave Type</label>
+              <select id="leaveType">
+                <option value="sick">Sick</option>
+                <option value="casual">Casual</option>
+                <option value="vacation">Vacation</option>
+              </select>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                <label for="startDate">From</label>
+                <input id="startDate" type="date"/>
+              </div>
+              <div>
+                <label for="endDate">To</label>
+                <input id="endDate" type="date"/>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="reason">Reason</label>
+              <input id="reason" placeholder="Reason (optional)"/>
+            </div>
+
+            <button id="applyBtn" class="primary-btn full-btn">Apply</button>
+          </section>
+
+          <!-- Leave Balance -->
+          <section class="card">
+            <div class="card-header-row">
+              <div class="card-title-group">
+                <div class="card-icon">📊</div>
+                <div>
+                  <div class="card-title">Leave Balance</div>
+                  <div class="card-subtitle">Available leave for this year</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="balance-list">
+              <p><span class="dot sick"></span> Sick Leave:
+                <strong id="sickBalance">0</strong></p>
+              <p><span class="dot casual"></span> Casual Leave:
+                <strong id="casualBalance">0</strong></p>
+              <p><span class="dot vac"></span> Vacation Leave:
+                <strong id="vacBalance">0</strong></p>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- My Requests Table -->
+        <section class="card table-card">
+          <div class="card-header-row">
+            <div class="card-title-group">
+              <div class="card-icon">📅</div>
+              <div>
+                <div class="card-title">My Requests</div>
+                <div class="card-subtitle">All leaves applied by you</div>
+              </div>
+            </div>
+          </div>
+
+          <table class="styled-table" id="myRequests">
+            <thead>
+            <tr>
+              <th>Type</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Days</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+
+<script>
+  (async function () {
+    const user = JSON.parse(localStorage.getItem('lm_user') || '{}');
+    if (!user || user.role !== 'employee') {
+      alert("Please login as employee");
+      location.href = "/";
+      return;
+    }
+
+    const uid = user.id;
+
+    document.getElementById("logout").onclick = () => {
+      localStorage.removeItem("lm_user");
+      location.href = "/";
+    };
+
+    async function loadBalance() {
+      const res = await fetch(`/api/leaves/balance?userId=${uid}`);
+      const b = await res.json();
+      document.getElementById("sickBalance").textContent = b.sickLeave;
+      document.getElementById("casualBalance").textContent = b.casualLeave;
+      document.getElementById("vacBalance").textContent = b.vacation;
+    }
+
+    async function loadRequests() {
+      const res = await fetch(`/api/leaves/my-requests?userId=${uid}`);
+      const list = await res.json();
+      const tbody = document.querySelector("#myRequests tbody");
+      tbody.innerHTML = "";
+
+      list.forEach(l => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${l.leaveType}</td>
+            <td>${l.startDate}</td>
+            <td>${l.endDate}</td>
+            <td>${l.totalDays}</td>
+            <td><span class="${l.status}">${l.status}</span></td>
+            <td>
+              ${l.status === "pending"
+                ? `<button onclick="cancel(${l.id})" class="rejectBtn">Cancel</button>`
+                : ""
+              }
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    window.cancel = async (id) => {
+      await fetch(`/api/leaves/${id}`, { method: "DELETE" });
+      loadRequests();
+      loadBalance();
+    };
+
+    document.getElementById("applyBtn").onclick = async () => {
+      const leaveType = document.getElementById("leaveType").value;
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const reason = document.getElementById("reason").value;
+
+      if (!startDate || !endDate) {
+        alert("Pick dates!");
+        return;
+      }
+
+      const sd = new Date(startDate),
+            ed = new Date(endDate);
+      const days = Math.max(1, Math.round((ed - sd) / (1000 * 60 * 60 * 24)) + 1);
+
+      const resp = await fetch(`/api/leaves`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: uid,
+          leaveType,
+          startDate,
+          endDate,
+          totalDays: days,
+          reason
+        })
+      });
+
+      if (!resp.ok) {
+        alert("Failed");
+        return;
+      }
+
+      alert("Leave applied!");
+      await loadRequests();
+      await loadBalance();
+    };
+
+    await loadBalance();
+    await loadRequests();
+  })();
+</script>
+
+</body>
+</html>
